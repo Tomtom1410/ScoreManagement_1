@@ -55,10 +55,10 @@ public class AuthController {
             return "Full name is invalid! It must be letter!";
         }
 
-        return authService.registerAccount(student);
+        return authService.createAccount(student);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') and #studentDTO.username == authentication.principal.username")
+    @PreAuthorize("hasAuthority('ADMIN') or #studentDTO.username == authentication.principal.username")
     @PutMapping("update")
     public ResponseEntity<ResponseObject> updateStudent(@Valid @RequestBody StudentDTO studentDTO) {
         if (!Pattern.matches(REGEX_FULL_NAME, studentDTO.getFullName())) {
@@ -68,7 +68,8 @@ public class AuthController {
         }
         return authService.update(studentDTO);
     }
-    @PreAuthorize("hasAuthority('ADMIN') and #accountCustom.account.username == authentication.principal.username")
+
+    @PreAuthorize("hasAuthority('ADMIN') or #accountCustom.account.username == authentication.principal.username")
     @PutMapping("change-password")
     public ResponseEntity<ResponseObject> changePassword(@RequestBody AccountCustomDTO accountCustom) {
         if (!accountCustom.getNewPassword().equals(accountCustom.getRePassword())) {

@@ -6,6 +6,7 @@ import com.scoremanagement.services.CourseService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,11 +48,13 @@ public class CourseController {
         return courseService.getCourseById(id);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create")
     public ResponseEntity<String> createCourse(@Valid @RequestBody CourseDTO course) {
         return courseService.insertCourse(course);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("update")
     public ResponseEntity<ResponseObject> updateCourse(@Valid @RequestBody CourseDTO courseDTO) {
         if (courseDTO.getId() == null) {
@@ -62,6 +65,7 @@ public class CourseController {
         return courseService.updateCourse(courseDTO);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteCourse(@PathVariable Long id) {
         if (id <= 0) {

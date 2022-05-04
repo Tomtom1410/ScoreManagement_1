@@ -62,22 +62,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String registerAccount(StudentDTO studentDTO) {
-        AccountDTO accountDTO = new AccountDTO(studentDTO.getUsername(), studentDTO.getPassword(), false);
-
-        if (accountRepository.existsByUsername(accountDTO.getUsername())) {
+    public String createAccount(StudentDTO studentDTO) {
+        if (accountRepository.existsByUsername(studentDTO.getUsername())) {
             return "Username existed!";
         } else {
-            String passwordEncoding = hashPassword(accountDTO.getPassword());
+            String passwordEncoding = hashPassword(studentDTO.getPassword());
             Account account = new Account();
-            account.setIsAdmin(accountDTO.getIsAdmin());
-            account.setUsername(accountDTO.getUsername());
+            if (studentDTO.getIsAdmin() == null){
+                account.setIsAdmin(false);
+            }else if (studentDTO.getIsAdmin()){
+                account.setIsAdmin(true);
+            }
+            account.setUsername(studentDTO.getUsername());
             account.setPassword(passwordEncoding);
             accountRepository.save(account);
             Student student = objectMapper.convertValue(studentDTO, Student.class);
             student.setRollNumber(generateRollNumber());
             studentRepository.save(student);
-            return "Register successful!";
+            return "Create account successful!";
         }
     }
 
@@ -107,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     new ResponseObject("Username or password is invalid!", null)
             );
-        }else {
+        } else {
             Account account = new Account();
             account.setUsername(accountDTO.getUsername());
             account.setPassword(hashPassword(newPassword));

@@ -11,7 +11,7 @@ public interface AuthService extends UserDetailsService {
 
     boolean checkLogin(AccountDTO account);
 
-    String registerAccount(StudentDTO student);
+    String createAccount(StudentDTO student);
 
     ResponseEntity<ResponseObject> update(StudentDTO studentDTO);
 

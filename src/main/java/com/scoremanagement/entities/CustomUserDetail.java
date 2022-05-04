@@ -2,6 +2,7 @@ package com.scoremanagement.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,13 +14,18 @@ import java.util.Collections;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CustomUserDetail implements UserDetails {
 
     private Account account;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        if (this.account.getIsAdmin()) {
+            return Collections.singleton(new SimpleGrantedAuthority("ADMIN"));
+        }else {
+            return Collections.singleton(new SimpleGrantedAuthority("USER"));
+        }
     }
 
     @Override

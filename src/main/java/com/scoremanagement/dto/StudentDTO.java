@@ -18,6 +18,7 @@ public class StudentDTO {
     @NotBlank(message = "Password is not empty!")
     @NotNull(message = "Password is mandatory!")
     private String password;
+    private Boolean isAdmin;
     private String rollNumber;
     @NotBlank(message = "Full name is not empty!")
     @NotNull(message = "Full name is mandatory!")
