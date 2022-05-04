@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,6 +58,12 @@ public class AuthController {
         }
 
         return authService.createAccount(student);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("delete/{username}")
+    public ResponseEntity<String> deleteAccount(@PathVariable String username){
+        return authService.deleteAccount(username);
     }
 
     @PreAuthorize("hasAuthority('ADMIN') or #studentDTO.username == authentication.principal.username")

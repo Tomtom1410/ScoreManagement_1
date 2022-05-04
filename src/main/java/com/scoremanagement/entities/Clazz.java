@@ -23,6 +23,8 @@ public class Clazz {
     private Long id;
     @Column(name = "name")
     private String className;
+    @Column(name = "is_delete")
+    private Boolean isDelete;
 
     @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "clazz")

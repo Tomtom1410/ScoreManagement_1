@@ -16,4 +16,5 @@ public class AccountDTO {
     @NotNull(message = "Password is mandatory!")
     private String password;
     private Boolean isAdmin;
+    private Boolean isDelete;
 }

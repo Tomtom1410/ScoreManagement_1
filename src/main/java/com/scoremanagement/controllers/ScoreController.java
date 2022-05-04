@@ -45,7 +45,6 @@ public class ScoreController {
             @PathVariable String courseCode
     ) {
         return scoreService.getScoreByClassAndCourse(id, courseCode);
-
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

@@ -79,9 +79,10 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public ResponseEntity<String> deleteById(Long id) {
-        boolean checkExisted = classRepository.existsById(id);
-        if (checkExisted) {
-            classRepository.deleteById(id);
+        Clazz clazz = classRepository.findById(id).orElse(null);
+        if (clazz != null) {
+            clazz.setIsDelete(true);
+            classRepository.save(clazz);
             return ResponseEntity.ok("Delete Successful!");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found class with id = " + id);

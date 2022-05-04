@@ -28,7 +28,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public ResponseEntity<ResponseObject> getAllStudents(String key, Integer page, Integer PAGE_SIZE) {
-        List<Student> studentList = studentRepository.getStudentsAllByFullNameLikeOrRollNumberLike(key, PageRequest.of(page - 1, PAGE_SIZE)).getContent();
+        List<Student> studentList = studentRepository.getStudentsAllByFullNameLikeOrRollNumberLike(true, key , PageRequest.of(page - 1, PAGE_SIZE)).getContent();
         if (studentList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Don't have students", null)

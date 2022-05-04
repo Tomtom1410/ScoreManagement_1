@@ -19,9 +19,11 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     @Query(value = "SELECT roll_number FROM students ORDER BY roll_number DESC LIMIT 1;", nativeQuery = true)
     String getLastRollNumber();
 
-    @Query(value = "select s from Student s  left join s.clazz c " +
-            "where concat(s.fullName,s.rollNumber) like %?1% or c.className like %?1% ")
-    Page<Student> getStudentsAllByFullNameLikeOrRollNumberLike(String key, Pageable page);
+    @Query(value = "select s from Student s join s.account a left join s.clazz c " +
+            "where " +
+            "(concat(s.fullName,s.rollNumber) like %:key% or c.className like %:key%) AND " +
+            "(:isDelete is null or :isDelete = a.isDelete)")
+    Page<Student> getStudentsAllByFullNameLikeOrRollNumberLike(Boolean isDelete, String key, Pageable page);
 
     List<Student> findAllByClazz(Clazz clazz);
 }

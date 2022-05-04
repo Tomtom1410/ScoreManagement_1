@@ -21,5 +21,6 @@ public class Course {
     private String courseCode;
     @Column(name = "name")
     private String courseName;
-
+    @Column(name = "is_delete")
+    private Boolean isDelete;
 }

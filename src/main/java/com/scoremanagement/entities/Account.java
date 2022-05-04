@@ -19,4 +19,6 @@ public class Account {
     private String password;
     @Column(name = "is_admin")
     private Boolean isAdmin;
+    @Column(name = "is_delete")
+    private Boolean isDelete;
 }

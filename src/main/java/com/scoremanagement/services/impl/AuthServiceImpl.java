@@ -68,9 +68,9 @@ public class AuthServiceImpl implements AuthService {
         } else {
             String passwordEncoding = hashPassword(studentDTO.getPassword());
             Account account = new Account();
-            if (studentDTO.getIsAdmin() == null){
+            if (studentDTO.getIsAdmin() == null) {
                 account.setIsAdmin(false);
-            }else if (studentDTO.getIsAdmin()){
+            } else if (studentDTO.getIsAdmin()) {
                 account.setIsAdmin(true);
             }
             account.setUsername(studentDTO.getUsername());
@@ -119,5 +119,16 @@ public class AuthServiceImpl implements AuthService {
                     new ResponseObject("Change password successful!", null)
             );
         }
+    }
+
+    @Override
+    public ResponseEntity<String> deleteAccount(String username) {
+        Account account = accountRepository.findByUsername(username);
+        if (account == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found account with username: " + username);
+        }
+        account.setIsDelete(true);
+        accountRepository.save(account);
+        return ResponseEntity.ok("Delete successful!");
     }
 }

@@ -58,7 +58,8 @@ public class CourseServiceImpl implements CourseService {
         if (course == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found course with id = " + id);
         } else {
-            courseRepository.deleteById(id);
+            course.setIsDelete(true);
+            courseRepository.save(course);
             return ResponseEntity.status(HttpStatus.OK).body("Delete successful!");
         }
     }

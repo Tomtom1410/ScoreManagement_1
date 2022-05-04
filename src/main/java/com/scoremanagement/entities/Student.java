@@ -13,6 +13,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.sql.Date;
 import java.util.List;
@@ -49,5 +50,9 @@ public class Student {
     @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "student")
     private List<Score> scoreList;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "username", referencedColumnName = "username")
+    private Account account;
 
 }

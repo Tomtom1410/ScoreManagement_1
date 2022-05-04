@@ -17,4 +17,5 @@ public interface AuthService extends UserDetailsService {
 
     ResponseEntity<ResponseObject> changePassword(AccountDTO account, String newPassword);
 
+    ResponseEntity<String> deleteAccount(String username);
 }

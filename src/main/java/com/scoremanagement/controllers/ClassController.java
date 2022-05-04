@@ -34,7 +34,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class ClassController {
     private final ClassService classService;
-    private final ExportExcelFileService exportExcelFileService;
     private final Integer PAGE_SIZE = 2;
 
     @GetMapping("")
