@@ -31,13 +31,14 @@ public class ScoreController {
     private final StudentService studentService;
     private final ExportExcelFileService exportExcelFileService;
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('ADMIN') or #username == authentication.principal.username")
+    @PreAuthorize("hasAuthority('ADMIN') or #username == authentication.principal.username")
     @GetMapping("student")
     public ResponseEntity<List<ScoreDTO>> getScoresOfStudent(
             @RequestParam(name = "username") String username) {
         return scoreService.getScoresOfStudent(username);
     }
-    @PreAuthorize("isAuthenticated() and hasAuthority('ADMIN')")
+
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("class/{id}/course/{courseCode}")
     public ResponseEntity<ResponseObject> getScoreByClassAndCourse(
             @PathVariable Long id,
@@ -47,12 +48,14 @@ public class ScoreController {
 
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("update")
     public ResponseEntity<String> updateScoreOfClass(@RequestBody List<ScoreDTO> scoreDTOList
     ) {
         return scoreService.updateScoreTable(scoreDTOList);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("student/export")
     public ResponseEntity<String> exportExcel(
             @RequestParam("username") String username) {
@@ -66,6 +69,7 @@ public class ScoreController {
         return ResponseEntity.ok().body("Export success!");
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("class/export")
     public ResponseEntity<String> exportGradeByClassAndCourse(
             @RequestParam(name = "classId", defaultValue = "") Long id,

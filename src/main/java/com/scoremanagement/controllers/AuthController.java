@@ -48,7 +48,7 @@ public class AuthController {
         );
     }
 
-    @PreAuthorize("isAuthenticated() and hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create-account")
     public String createAccount(@Valid @RequestBody StudentDTO student) {
         if (!Pattern.matches(REGEX_FULL_NAME, student.getFullName())) {
@@ -58,7 +58,7 @@ public class AuthController {
         return authService.registerAccount(student);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('ADMIN') and #studentDTO.username == authentication.principal.username")
     @PutMapping("update")
     public ResponseEntity<ResponseObject> updateStudent(@Valid @RequestBody StudentDTO studentDTO) {
         if (!Pattern.matches(REGEX_FULL_NAME, studentDTO.getFullName())) {
@@ -68,7 +68,7 @@ public class AuthController {
         }
         return authService.update(studentDTO);
     }
-
+    @PreAuthorize("hasAuthority('ADMIN') and #accountCustom.account.username == authentication.principal.username")
     @PutMapping("change-password")
     public ResponseEntity<ResponseObject> changePassword(@RequestBody AccountCustomDTO accountCustom) {
         if (!accountCustom.getNewPassword().equals(accountCustom.getRePassword())) {
