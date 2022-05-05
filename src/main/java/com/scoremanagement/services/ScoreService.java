@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface ScoreService {
-    ResponseEntity<List<ScoreDTO>> getScoresOfStudent(String username);
+    ResponseEntity<ResponseObject>  getScoresOfStudent(String username);
 
     List<ScoreExportExcelModel> getScoresForExport(String username);
 

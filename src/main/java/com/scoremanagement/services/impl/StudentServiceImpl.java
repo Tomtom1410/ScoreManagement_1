@@ -47,7 +47,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public ResponseEntity<ResponseObject> getStudentByUsername(String username) {
         Student student = studentRepository.findStudentByUsername(username);
-        if (student == null) {
+        if (student == null || student.getAccount().getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found student with username: " + username, null)
             );
@@ -57,17 +57,4 @@ public class StudentServiceImpl implements StudentService {
             );
         }
     }
-
-//    @Override
-//    public List<StudentExportExcelModel> getStudentForExport() {
-//        List<Student> studentList = studentRepository.findAll();
-//        studentList.sort((o1, o2) -> {
-//            return o1.getFullName().compareTo(o2.getFullName());
-//        });
-//        List<StudentExportExcelModel> exportList = new ArrayList<>();
-//        for (Student student : studentList) {
-//            exportList.add(objectMapper.convertValue(student, StudentExportExcelModel.class));
-//        }
-//        return exportList;
-//    }
 }

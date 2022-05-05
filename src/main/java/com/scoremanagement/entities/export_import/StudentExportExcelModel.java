@@ -21,7 +21,7 @@ public class StudentExportExcelModel extends BaseExportExcelModel {
     @Override
     public List<MetadataExcelModel> getListMetadata() {
         return Arrays.asList(
-                new MetadataExcelModel(1, "rollNumber", Long.class, "Student Roll"),
+                new MetadataExcelModel(1, "rollNumber", String.class, "Student Roll"),
                 new MetadataExcelModel(2, "fullName", String.class, "Full Name"),
                 new MetadataExcelModel(3, "dob", Date.class, "D.O.B"),
                 new MetadataExcelModel(4, "gender", String.class, "Gender"),

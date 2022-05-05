@@ -33,7 +33,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ResponseObject> getAllCourses(String key, Integer page, Integer PAGE_SIZE) {
-        List<Course> courseList = courseRepository.getCoursesByCourseNameOrCourseCode(key,
+        List<Course> courseList = courseRepository.getCoursesByCourseNameOrCourseCode(key, false,
                 PageRequest.of(page - 1, PAGE_SIZE,
                         Sort.by("courseCode").ascending().and(Sort.by("courseName").ascending()))
         ).getContent();
@@ -55,7 +55,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public ResponseEntity<String> deleteCourse(Long id) {
         Course course = courseRepository.findById(id).orElse(null);
-        if (course == null) {
+        if (course == null || course.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found course with id = " + id);
         } else {
             course.setIsDelete(true);
@@ -67,7 +67,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public ResponseEntity<ResponseObject> getCourseById(Long id) {
         Course course = courseRepository.findById(id).orElse(null);
-        if (course == null) {
+        if (course == null || course.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found course with id = " + id, null)
             );
@@ -81,9 +81,9 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public ResponseEntity<ResponseObject> updateCourse(CourseDTO courseDTO) {
         Course course = courseRepository.findById(courseDTO.getId()).orElse(null);
-        if (course == null) {
+        if (course == null || course.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("Not found course with id = " + courseDTO.getId(), null)
+                    new ResponseObject("Not found course with id = " + courseDTO.getCourseCode(), null)
             );
         } else {
             course = courseRepository.save(course);

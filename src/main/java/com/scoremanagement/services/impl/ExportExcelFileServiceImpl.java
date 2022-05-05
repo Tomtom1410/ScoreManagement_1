@@ -89,8 +89,6 @@ public class ExportExcelFileServiceImpl implements ExportExcelFileService {
                                 case "java.time.LocalDateTime":
                                     value = DATE_TIME_FORMATTER.format((LocalDateTime) valueObject);
                                     break;
-//                                case "java.util.Date":
-//                                    break;
                                 default:
                                     value = valueObject.toString();
                             }

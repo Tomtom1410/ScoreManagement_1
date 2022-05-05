@@ -62,24 +62,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String createAccount(StudentDTO studentDTO) {
+    public ResponseEntity<String> createAccount(StudentDTO studentDTO) {
         if (accountRepository.existsByUsername(studentDTO.getUsername())) {
-            return "Username existed!";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username existed!");
         } else {
             String passwordEncoding = hashPassword(studentDTO.getPassword());
             Account account = new Account();
             if (studentDTO.getIsAdmin() == null) {
                 account.setIsAdmin(false);
-            } else if (studentDTO.getIsAdmin()) {
-                account.setIsAdmin(true);
             }
+            account.setIsAdmin(studentDTO.getIsAdmin());
             account.setUsername(studentDTO.getUsername());
             account.setPassword(passwordEncoding);
             accountRepository.save(account);
-            Student student = objectMapper.convertValue(studentDTO, Student.class);
-            student.setRollNumber(generateRollNumber());
-            studentRepository.save(student);
-            return "Create account successful!";
+            if (!account.getIsAdmin()) {
+                Student student = objectMapper.convertValue(studentDTO, Student.class);
+                student.setRollNumber(generateRollNumber());
+                studentRepository.save(student);
+            }
+            return ResponseEntity.ok("Create account successful!");
         }
     }
 

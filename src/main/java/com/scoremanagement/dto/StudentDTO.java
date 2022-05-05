@@ -21,8 +21,6 @@ public class StudentDTO {
     private String password;
     private Boolean isAdmin;
     private String rollNumber;
-    @NotBlank(message = "Full name is not empty!")
-    @NotNull(message = "Full name is mandatory!")
     private String fullName;
     private Date dob;
     private Boolean gender;

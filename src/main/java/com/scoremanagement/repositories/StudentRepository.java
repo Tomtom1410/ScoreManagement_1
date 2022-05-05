@@ -25,5 +25,9 @@ public interface StudentRepository extends JpaRepository<Student, String> {
             "(:isDelete is null or :isDelete = a.isDelete)")
     Page<Student> getStudentsAllByFullNameLikeOrRollNumberLike(Boolean isDelete, String key, Pageable page);
 
-    List<Student> findAllByClazz(Clazz clazz);
+    List<Student> findAllByClazzAndAccount_IsDelete(boolean accountIsDelete,Clazz clazz);
+
+    Student findStudentByRollNumber(String rollNumber);
+
+    boolean existsByUsernameAndAccount_IsDelete(String username, Boolean isDelete);
 }

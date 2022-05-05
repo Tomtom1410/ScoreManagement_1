@@ -33,7 +33,7 @@ public class ScoreController {
 
     @PreAuthorize("hasAuthority('ADMIN') or #username == authentication.principal.username")
     @GetMapping("student")
-    public ResponseEntity<List<ScoreDTO>> getScoresOfStudent(
+    public ResponseEntity<ResponseObject> getScoresOfStudent(
             @RequestParam(name = "username") String username) {
         return scoreService.getScoresOfStudent(username);
     }
@@ -76,7 +76,7 @@ public class ScoreController {
     ) {
         List<BaseExportExcelModel> list = new ArrayList<>();
         list.addAll(scoreService.getScoreExportForClass(id, courseCode));
-        exportExcelFileService.exportFile("class_test", "test", list, StudentExportExcelModel.class);
+        exportExcelFileService.exportFile("class_test", courseCode, list, StudentExportExcelModel.class);
         return ResponseEntity.ok("Export success!");
     }
 }

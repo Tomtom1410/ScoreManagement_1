@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    @Query("select c from Course c where concat(c.courseCode, c.courseName) like %?1%")
-    Page<Course> getCoursesByCourseNameOrCourseCode(String key, Pageable pageable);
+    @Query("select c from Course c where concat(c.courseCode, c.courseName) like %:key% " + "and c.isDelete =:isDelete")
+    Page<Course> getCoursesByCourseNameOrCourseCode(String key, boolean isDelete, Pageable pageable);
+
+    Course findByCourseCode(String sheetName);
 }

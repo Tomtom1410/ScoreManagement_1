@@ -7,6 +7,7 @@ import com.scoremanagement.entities.Student;
 import com.scoremanagement.entities.export_import.ScoreExportExcelModel;
 import com.scoremanagement.entities.export_import.StudentExportExcelModel;
 import com.scoremanagement.repositories.ScoreRepository;
+import com.scoremanagement.repositories.StudentRepository;
 import com.scoremanagement.response.ResponseObject;
 import com.scoremanagement.services.ScoreService;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ScoreServiceImpl implements ScoreService {
     private final ObjectMapper objectMapper;
     private final ScoreRepository scoreRepository;
+    private final StudentRepository studentRepository;
 
     private List<ScoreDTO> getScore(String username) {
         Student student = new Student();
@@ -35,8 +37,21 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public ResponseEntity<List<ScoreDTO>> getScoresOfStudent(String username) {
-        return ResponseEntity.ok(getScore(username));
+    public ResponseEntity<ResponseObject> getScoresOfStudent(String username) {
+        if (studentRepository.existsByUsernameAndAccount_IsDelete(username, false)) {
+            List<ScoreDTO> scoreDTOList = getScore(username);
+            if (scoreDTOList.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("Student " + username + " don't have score!", null)
+                );
+            }
+            return ResponseEntity.ok(
+                    new ResponseObject(null, scoreDTOList)
+            );
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ResponseObject("Don't have student with username is " + username, null)
+        );
     }
 
     @Override
@@ -51,7 +66,7 @@ public class ScoreServiceImpl implements ScoreService {
 
     @Override
     public List<StudentExportExcelModel> getScoreExportForClass(Long id, String courseCode) {
-        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(id, courseCode);
+        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(false, id, courseCode);
         List<StudentExportExcelModel> export = new ArrayList<>();
         for (Score score : scoreList) {
             StudentExportExcelModel student = new StudentExportExcelModel();
@@ -77,7 +92,7 @@ public class ScoreServiceImpl implements ScoreService {
 
     @Override
     public ResponseEntity<ResponseObject> getScoreByClassAndCourse(Long id, String courseCode) {
-        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(id, courseCode);
+        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(false, id, courseCode);
         if (scoreList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not Found Score Table!", null)

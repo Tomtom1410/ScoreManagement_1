@@ -52,9 +52,14 @@ public class AuthController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create-account")
-    public String createAccount(@Valid @RequestBody StudentDTO student) {
+    public ResponseEntity<String> createAccount(@Valid @RequestBody StudentDTO student) {
+        if(student.getIsAdmin() == null || !student.getIsAdmin()){
+            if (student.getFullName().trim().length() == 0){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Full name is not blank or empty!");
+            }
+        }
         if (!Pattern.matches(REGEX_FULL_NAME, student.getFullName())) {
-            return "Full name is invalid! It must be letter!";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Full name is invalid! It must be letter!");
         }
 
         return authService.createAccount(student);

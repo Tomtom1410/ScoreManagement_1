@@ -39,14 +39,14 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public ResponseEntity<ResponseObject> getClassById(Long classId) {
         ClazzDTO clazzDTO = objectMapper.convertValue(classRepository.findById(classId).orElse(null), ClazzDTO.class);
-        if (clazzDTO == null) {
+        if (clazzDTO == null || clazzDTO.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found class with id " + classId, null)
             );
         } else {
             Clazz clazz = new Clazz();
             clazz.setId(classId);
-            List<Student> studentList = studentRepository.findAllByClazz(clazz);
+            List<Student> studentList = studentRepository.findAllByClazzAndAccount_IsDelete(false, clazz);
             if (!studentList.isEmpty()) {
                 clazzDTO.setStudentList(studentList);
             }
@@ -58,7 +58,7 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public ResponseEntity<ResponseObject> getAllClasses(String key, Integer page, Integer PAGE_SIZE) {
-        List<Clazz> classes = classRepository.findAllByClassNameLike("%" + key + "%",
+        List<Clazz> classes = classRepository.findAllByClassNameLikeAndIsDelete("%" + key + "%", true,
                 PageRequest.of(page - 1, PAGE_SIZE
                         , Sort.by("className").ascending()
                 )).getContent();
@@ -80,7 +80,7 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public ResponseEntity<String> deleteById(Long id) {
         Clazz clazz = classRepository.findById(id).orElse(null);
-        if (clazz != null) {
+        if (clazz != null && !clazz.getIsDelete()) {
             clazz.setIsDelete(true);
             classRepository.save(clazz);
             return ResponseEntity.ok("Delete Successful!");
