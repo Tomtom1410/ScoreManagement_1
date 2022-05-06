@@ -37,10 +37,10 @@ public class CourseController {
             @RequestParam(name = "key", defaultValue = "") String key,
             @RequestParam(name = "page", defaultValue = "1") Integer page
     ) {
-        if (page <= 0){
+        if (page <= 0) {
             page = 1;
         }
-        return courseService.getAllCourses(key, page, PAGE_SIZE);
+        return courseService.getAllCourses(false, key, page, PAGE_SIZE);
     }
 
     @GetMapping("{id}")

@@ -32,8 +32,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getAllCourses(String key, Integer page, Integer PAGE_SIZE) {
-        List<Course> courseList = courseRepository.getCoursesByCourseNameOrCourseCode(key, false,
+    public ResponseEntity<ResponseObject> getAllCourses(boolean isDelete, String key, Integer page, Integer PAGE_SIZE) {
+        List<Course> courseList = courseRepository.getCoursesByCourseNameOrCourseCode(key, isDelete,
                 PageRequest.of(page - 1, PAGE_SIZE,
                         Sort.by("courseCode").ascending().and(Sort.by("courseName").ascending()))
         ).getContent();
@@ -86,11 +86,26 @@ public class CourseServiceImpl implements CourseService {
                     new ResponseObject("Not found course with id = " + courseDTO.getCourseCode(), null)
             );
         } else {
-            course = courseRepository.save(course);
+            course = courseRepository.save(objectMapper.convertValue(courseDTO, Course.class));
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("Update done!", course)
             );
         }
+    }
+
+    @Override
+    public ResponseEntity<String> restoreCourse(Long[] courseIdList) {
+        if (courseIdList.length <= 0) {
+            return ResponseEntity.status(400).body("You don't choose course(s) to restore!");
+        }
+        for (Long courseId : courseIdList) {
+            Course course = courseRepository.findById(courseId).orElse(null);
+            if (course != null) {
+                course.setIsDelete(false);
+                courseRepository.save(course);
+            }
+        }
+        return ResponseEntity.status(200).body("Restore successful!");
     }
 
 }

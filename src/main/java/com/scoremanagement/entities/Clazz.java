@@ -27,6 +27,6 @@ public class Clazz {
     private Boolean isDelete;
 
     @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "clazz")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "clazz")
     private List<Student> studentList;
 }

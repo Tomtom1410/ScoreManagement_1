@@ -5,6 +5,7 @@ import com.scoremanagement.dto.AccountDTO;
 import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.Account;
 import com.scoremanagement.entities.CustomUserDetail;
+import com.scoremanagement.entities.Helper;
 import com.scoremanagement.entities.Student;
 import com.scoremanagement.repositories.AccountRepository;
 import com.scoremanagement.repositories.StudentRepository;
@@ -29,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final StudentRepository studentRepository;
     private final ObjectMapper objectMapper;
+    private final Helper helper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -39,22 +41,12 @@ public class AuthServiceImpl implements AuthService {
         return new CustomUserDetail(account);
     }
 
-    private String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(password.getBytes());
-            byte[] digest = md.digest();
-            return DatatypeConverter.printHexBinary(digest).toUpperCase();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+
 
     @Override
     public boolean checkLogin(AccountDTO accountDTO) {
         UserDetails user = loadUserByUsername(accountDTO.getUsername());
-        String passwordEncoding = hashPassword(accountDTO.getPassword());
+        String passwordEncoding = helper.hashPassword(accountDTO.getPassword());
         if (user != null && passwordEncoding.equals(user.getPassword())) {
             return true;
         }
@@ -66,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         if (accountRepository.existsByUsername(studentDTO.getUsername())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username existed!");
         } else {
-            String passwordEncoding = hashPassword(studentDTO.getPassword());
+            String passwordEncoding = helper.hashPassword(studentDTO.getPassword());
             Account account = new Account();
             if (studentDTO.getIsAdmin() == null) {
                 account.setIsAdmin(false);
@@ -77,22 +69,14 @@ public class AuthServiceImpl implements AuthService {
             accountRepository.save(account);
             if (!account.getIsAdmin()) {
                 Student student = objectMapper.convertValue(studentDTO, Student.class);
-                student.setRollNumber(generateRollNumber());
+                student.setRollNumber(helper.generateRollNumber());
                 studentRepository.save(student);
             }
             return ResponseEntity.ok("Create account successful!");
         }
     }
 
-    private String generateRollNumber() {
-        String lastRoll = studentRepository.getLastRollNumber().substring(2);
-        int roll = Integer.parseInt(lastRoll.toString()) + 1;
-        String pre = "SV";
-        while (pre.length() + Integer.toString(roll).length() < 8) {
-            pre += "0";
-        }
-        return pre + roll;
-    }
+
 
     @Override
     public ResponseEntity<ResponseObject> update(StudentDTO studentDTO) {
@@ -113,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
         } else {
             Account account = new Account();
             account.setUsername(accountDTO.getUsername());
-            account.setPassword(hashPassword(newPassword));
+            account.setPassword(helper.hashPassword(newPassword));
             account.setIsAdmin(accountDTO.getIsAdmin());
             accountRepository.save(account);
             return ResponseEntity.status(HttpStatus.OK).body(

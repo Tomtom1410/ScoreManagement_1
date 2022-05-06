@@ -9,11 +9,13 @@ public interface CourseService {
 
     ResponseEntity<String> insertCourse(CourseDTO courseDTO);
 
-    ResponseEntity<ResponseObject> getAllCourses(String key, Integer page, Integer PAGE_SIZE);
+    ResponseEntity<ResponseObject> getAllCourses(boolean isDelete, String key, Integer page, Integer PAGE_SIZE);
 
     ResponseEntity<String> deleteCourse(Long id);
 
     ResponseEntity<ResponseObject> getCourseById(Long id);
 
     ResponseEntity<ResponseObject> updateCourse(CourseDTO courseDTO);
+
+    ResponseEntity<String> restoreCourse(Long[] courseIdList);
 }

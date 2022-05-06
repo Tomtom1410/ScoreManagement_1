@@ -41,10 +41,10 @@ public class ClassController {
             @RequestParam(name = "key", defaultValue = "") String key,
             @RequestParam(name = "page", defaultValue = "1") Integer page
     ) {
-        if (page <= 0){
+        if (page <= 0) {
             page = 1;
         }
-        return classService.getAllClasses(key, page, PAGE_SIZE);
+        return classService.getAllClasses(false, key, page, PAGE_SIZE);
     }
 
     @GetMapping("{id}")
@@ -57,6 +57,7 @@ public class ClassController {
     public ResponseEntity<String> createClass(@Valid @RequestBody ClazzDTO clazzDTO) {
         return classService.insertClass(clazzDTO);
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("update")
     public ResponseEntity<ResponseObject> updateClass(@Valid @RequestBody ClazzDTO clazzDTO) {

@@ -27,7 +27,7 @@ public class StudentController {
         if (page <= 0) {
             page = 1;
         }
-        return studentService.getAllStudents(key, page, PAGE_SIZE);
+        return studentService.getAllStudents(false, key, page, PAGE_SIZE);
     }
 
     @PreAuthorize("hasAuthority('ADMIN') or #username == authentication.principal.username")

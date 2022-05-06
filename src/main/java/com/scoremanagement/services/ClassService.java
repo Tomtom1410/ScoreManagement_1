@@ -10,10 +10,11 @@ public interface ClassService {
 
     public ResponseEntity<ResponseObject> getClassById(Long classId);
 
-    ResponseEntity<ResponseObject> getAllClasses(String key, Integer page, Integer PAGE_SIZE);
+    ResponseEntity<ResponseObject> getAllClasses(boolean isDelete,String key, Integer page, Integer PAGE_SIZE);
 
     ResponseEntity<String> deleteById(Long id);
 
     ResponseEntity<ResponseObject> updateClass(ClazzDTO clazz);
 
+    ResponseEntity<String> restoreClass(Long[] classIdList);
 }

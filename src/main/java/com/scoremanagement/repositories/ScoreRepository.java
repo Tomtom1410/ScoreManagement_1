@@ -12,10 +12,8 @@ import java.util.List;
 public interface ScoreRepository extends JpaRepository<Score, Long> {
     List<Score> findAllByStudent(Student student);
 
-    @Query("select s from Score s join s.student st join s.course sc " +
-            " where " +
-            "s.student.account.isDelete =:isDelete and " +
-            "st.clazz.id =:id and sc.courseCode =:courseCode")
+    @Query("select s from Score s where s.student.account.isDelete =:isDelete " +
+            "and s.student.clazz.id =:id and s.course.courseCode =:courseCode ")
     List<Score> getScoresByClassAndCourse(boolean isDelete, Long id, String courseCode);
 
     Score findByStudentAndAndCourse(Student student, Course course);

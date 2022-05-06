@@ -9,5 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClassRepository extends JpaRepository<Clazz, Long> {
-    Page<Clazz> findAllByClassNameLikeAndIsDelete(String key, boolean isDelete,Pageable pageable);
+    Page<Clazz> findAllByClassNameLikeAndIsDelete(String key, boolean isDelete, Pageable pageable);
+
+    Clazz findByClassName(String className);
 }
