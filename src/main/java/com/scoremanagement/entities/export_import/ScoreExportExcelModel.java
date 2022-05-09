@@ -18,7 +18,7 @@ public class ScoreExportExcelModel extends BaseExportExcelModel {
     @Override
     public List<MetadataExcelModel> getListMetadata() {
         return Arrays.asList(
-                new MetadataExcelModel(1, "course", String.class, "Course"),
+                new MetadataExcelModel(1, "courseName", String.class, "Course"),
                 new MetadataExcelModel(2, "score", Double.class, "Score")
         );
     }

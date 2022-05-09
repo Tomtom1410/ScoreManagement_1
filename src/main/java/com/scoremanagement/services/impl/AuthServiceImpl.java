@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 
 @Service
@@ -40,7 +42,6 @@ public class AuthServiceImpl implements AuthService {
         }
         return new CustomUserDetail(account);
     }
-
 
 
     @Override
@@ -68,8 +69,15 @@ public class AuthServiceImpl implements AuthService {
             account.setPassword(passwordEncoding);
             accountRepository.save(account);
             if (!account.getIsAdmin()) {
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//                Student student = new Student();
+//                student.setUsername(studentDTO.getUsername());
+//                student.setRollNumber(helper.generateRollNumber());
+//                student.setClazz(student.getClazz());
+//                student.setFullName(studentDTO.getFullName());
+////                String dob = sdf.format(studentDTO.getDob());
+////                student.setDob(Date.valueOf(dob));
                 Student student = objectMapper.convertValue(studentDTO, Student.class);
-                student.setRollNumber(helper.generateRollNumber());
                 studentRepository.save(student);
             }
             return ResponseEntity.ok("Create account successful!");
@@ -77,14 +85,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-
     @Override
     public ResponseEntity<ResponseObject> update(StudentDTO studentDTO) {
-        Student student = objectMapper.convertValue(studentDTO, Student.class);
-        studentRepository.save(student);
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new ResponseObject("Change information successful!",
-                        objectMapper.convertValue(studentRepository.findStudentByUsername(student.getUsername()), StudentDTO.class))
+        if (studentRepository.existsById(studentDTO.getUsername())) {
+            Student student = objectMapper.convertValue(studentDTO, Student.class);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ResponseObject("Change information successful!",
+                            objectMapper.convertValue(studentRepository.save(student), StudentDTO.class))
+            );
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ResponseObject("Not found student with username: " + studentDTO.getUsername(),
+                        null)
         );
     }
 
@@ -99,6 +111,7 @@ public class AuthServiceImpl implements AuthService {
             account.setUsername(accountDTO.getUsername());
             account.setPassword(helper.hashPassword(newPassword));
             account.setIsAdmin(accountDTO.getIsAdmin());
+            account.setIsDelete(false);
             accountRepository.save(account);
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("Change password successful!", null)

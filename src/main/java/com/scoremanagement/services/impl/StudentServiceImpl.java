@@ -41,6 +41,7 @@ public class StudentServiceImpl implements StudentService {
         } else {
             List<StudentDTO> studentDTOList = new ArrayList<>();
             for (Student student : studentList) {
+                student.setAccount(null);
                 studentDTOList.add(objectMapper.convertValue(student, StudentDTO.class));
             }
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -57,6 +58,7 @@ public class StudentServiceImpl implements StudentService {
                     new ResponseObject("Not found student with username: " + username, null)
             );
         } else {
+            student.setAccount(null);
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("The student is:", objectMapper.convertValue(student, StudentDTO.class))
             );
@@ -65,7 +67,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public ResponseEntity<String> restoreStudent(String[] usernameStudents) {
-        if (usernameStudents.length <= 0){
+        if (usernameStudents.length <= 0) {
             return ResponseEntity.status(400).body("You don't choose student for restore!");
         }
         for (String username : usernameStudents) {

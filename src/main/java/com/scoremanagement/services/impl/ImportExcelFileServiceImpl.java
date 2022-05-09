@@ -1,7 +1,6 @@
 package com.scoremanagement.services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scoremanagement.dto.AccountDTO;
 import com.scoremanagement.dto.ClazzDTO;
 import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.Account;
@@ -28,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -49,8 +50,13 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
         try {
             List<Score> getData = readScoreExcelFile(file.getInputStream());
             if (!getData.isEmpty()) {
-                scoreRepository.saveAll(getData);
-                return ResponseEntity.ok("Import successful");
+                String message = checkScoreValid(getData);
+                if (message == null) {
+                    scoreRepository.saveAll(getData);
+                    return ResponseEntity.ok("Import successful");
+                } else {
+                    return ResponseEntity.status(400).body(message);
+                }
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error! Please try again.");
             }
@@ -66,6 +72,10 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
             List<StudentDTO> getData = readStudentExcelFile(file.getInputStream());
             if (!getData.isEmpty()) {
                 for (StudentDTO studentDTO : getData) {
+                    String message = checkStudentListValid(studentDTO);
+                    if (message != null) {
+                        return ResponseEntity.status(400).body(message);
+                    }
                     Account account = new Account();
                     account.setIsAdmin(false);
                     account.setIsDelete(false);
@@ -78,8 +88,9 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
                     Clazz clazz = classRepository.findByClassName(studentDTO.getClazz().getClassName());
                     student.setClazz(clazz);
                     studentRepository.save(student);
-                    return ResponseEntity.status(200).body("Import Successful!");
                 }
+                return ResponseEntity.status(200).body("Import Successful!");
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -118,7 +129,8 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
                                 }
                                 break;
                             case 5:
-                                score.setScore((double) currentCell.getNumericCellValue());
+                                Double point = currentCell.getNumericCellValue();
+                                score.setScore(point);
                                 break;
                             default:
                                 break;
@@ -164,7 +176,9 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
                                 student.setFullName(currentCell.getStringCellValue());
                                 break;
                             case 4:
-                                student.setDob(Date.valueOf(currentCell.getStringCellValue()));
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+                                String dob = df.format(currentCell.getDateCellValue());
+                                student.setDob(Date.valueOf(dob));
                                 break;
                             case 5:
                                 student.setGender(currentCell.getStringCellValue().equalsIgnoreCase("Male"));
@@ -187,5 +201,19 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
             return null;
         }
         return studentDTOList;
+    }
+
+    private String checkScoreValid(List<Score> scoreList) {
+        for (Score score : scoreList) {
+            return score.getScore() < 0 ? "Score of " + score.getStudent().getFullName() + " must be bigger or equal 0!" : null;
+        }
+        return null;
+    }
+
+    private String checkStudentListValid(StudentDTO studentDTO) {
+        if (studentRepository.existsById(studentDTO.getUsername())) {
+            return "Username " + studentDTO.getUsername() + " was existed! Please check and try again!";
+        }
+        return null;
     }
 }

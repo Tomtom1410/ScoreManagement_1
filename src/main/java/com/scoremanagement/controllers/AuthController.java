@@ -10,6 +10,7 @@ import com.scoremanagement.services.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -53,8 +54,8 @@ public class AuthController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create-account")
     public ResponseEntity<String> createAccount(@Valid @RequestBody StudentDTO student) {
-        if(student.getIsAdmin() == null || !student.getIsAdmin()){
-            if (student.getFullName().trim().length() == 0){
+        if (student.getIsAdmin() == null || !student.getIsAdmin()) {
+            if (student.getFullName().trim().length() == 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Full name is not blank or empty!");
             }
         }
@@ -67,7 +68,7 @@ public class AuthController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("delete/{username}")
-    public ResponseEntity<String> deleteAccount(@PathVariable String username){
+    public ResponseEntity<String> deleteAccount(@PathVariable String username) {
         return authService.deleteAccount(username);
     }
 

@@ -24,11 +24,15 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<String> insertCourse(CourseDTO courseDTO) {
-        Course course = objectMapper.convertValue(courseDTO, Course.class);
-        courseRepository.save(course);
-        return course.getId() != null ?
-                ResponseEntity.status(HttpStatus.CREATED).body("Create course successful!")
-                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Create failed!");
+        if (!courseRepository.existsByCourseCode(courseDTO.getCourseCode())) {
+            Course course = objectMapper.convertValue(courseDTO, Course.class);
+            course.setIsDelete(false);
+            courseRepository.save(course);
+            return course.getId() != null ?
+                    ResponseEntity.status(HttpStatus.CREATED).body("Create course successful!")
+                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Create failed!");
+        }
+        return ResponseEntity.status(400).body("Course \""+ courseDTO.getCourseCode()+"\" was existed!");
     }
 
     @Override
@@ -86,9 +90,14 @@ public class CourseServiceImpl implements CourseService {
                     new ResponseObject("Not found course with id = " + courseDTO.getCourseCode(), null)
             );
         } else {
-            course = courseRepository.save(objectMapper.convertValue(courseDTO, Course.class));
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("Update done!", course)
+            if (!courseRepository.existsByCourseCode(courseDTO.getCourseCode())) {
+                course = courseRepository.save(objectMapper.convertValue(courseDTO, Course.class));
+                return ResponseEntity.status(HttpStatus.OK).body(
+                        new ResponseObject("Update done!", course)
+                );
+            }
+            return  ResponseEntity.status(400).body(
+                    new ResponseObject("Course \""+ courseDTO.getCourseCode()+"\" was existed!", null)
             );
         }
     }

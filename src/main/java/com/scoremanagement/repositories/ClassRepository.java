@@ -12,4 +12,6 @@ public interface ClassRepository extends JpaRepository<Clazz, Long> {
     Page<Clazz> findAllByClassNameLikeAndIsDelete(String key, boolean isDelete, Pageable pageable);
 
     Clazz findByClassName(String className);
+
+    boolean existsByClassName(String className);
 }

@@ -13,4 +13,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Page<Course> getCoursesByCourseNameOrCourseCode(String key, boolean isDelete, Pageable pageable);
 
     Course findByCourseCode(String sheetName);
+
+    boolean existsByCourseCode(String courseCode);
 }

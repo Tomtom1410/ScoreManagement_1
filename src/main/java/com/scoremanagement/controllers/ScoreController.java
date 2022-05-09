@@ -28,8 +28,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ScoreController {
     private final ScoreService scoreService;
-    private final StudentService studentService;
-    private final ExportExcelFileService exportExcelFileService;
     private final int PAGE_SIZE = 2;
 
     @PreAuthorize("hasAuthority('ADMIN') or #username == authentication.principal.username")
@@ -53,35 +51,5 @@ public class ScoreController {
     public ResponseEntity<String> updateScoreOfClass(@RequestBody List<ScoreDTO> scoreDTOList
     ) {
         return scoreService.updateScoreTable(scoreDTOList);
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("student/export")
-    public ResponseEntity<String> exportExcel(
-            @RequestParam("username") String username) {
-        if (username == null || username.trim().length() == 0) {
-            return ResponseEntity.badRequest().body("Error! Please check again!");
-        }
-        StudentDTO studentDTO = (StudentDTO) studentService.getStudentByUsername(username).getBody().getData();
-        List<BaseExportExcelModel> list = new ArrayList<>();
-        list.addAll(scoreService.getScoresForExport(username));
-        exportExcelFileService.exportFile("Score Of " + studentDTO.getFullName(), studentDTO.getFullName(), list, ScoreExportExcelModel.class);
-        return ResponseEntity.ok().body("Export success!");
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("class/export")
-    public ResponseEntity<String> exportGradeByClassAndCourse(
-            @RequestParam(name = "classId", defaultValue = "") Long id,
-            @RequestParam(name = "courseCode", defaultValue = "") String courseCode
-    ) {
-        List<StudentExportExcelModel> exportExcelModels = scoreService.getScoreExportForClass(id, courseCode);
-        if (!exportExcelModels.isEmpty()) {
-            List<BaseExportExcelModel> list = new ArrayList<>();
-            list.addAll(exportExcelModels);
-            exportExcelFileService.exportFile("class_test", courseCode, list, StudentExportExcelModel.class);
-            return ResponseEntity.ok("Export success!");
-        }
-        return ResponseEntity.status(404).body("Not Score of class with course " + courseCode + " !");
     }
 }

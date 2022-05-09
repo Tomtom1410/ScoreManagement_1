@@ -29,11 +29,15 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public ResponseEntity<String> insertClass(ClazzDTO classesDTO) {
-        Clazz clazz = classRepository.save(objectMapper.convertValue(classesDTO, Clazz.class));
-        if (clazz.getId() > 0) {
-            return ResponseEntity.ok("Created successful!");
+        if (!classRepository.existsByClassName(classesDTO.getClassName())) {
+            classesDTO.setIsDelete(false);
+            Clazz clazz = classRepository.save(objectMapper.convertValue(classesDTO, Clazz.class));
+            if (clazz.getId() > 0) {
+                return ResponseEntity.ok("Created successful!");
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Created failed!");
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Created failed!");
+        return ResponseEntity.status(400).body("Class \"" + classesDTO.getClassName() + "\" was existed!");
     }
 
     @Override
@@ -92,15 +96,19 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public ResponseEntity<ResponseObject> updateClass(ClazzDTO clazz) {
         Clazz clazz1 = classRepository.findById(clazz.getId()).orElse(null);
-//        ClazzDTO clazzDTO = objectMapper.convertValue(classRepository.save(objectMapper.convertValue(clazz, Clazz.class)), ClazzDTO.class);
         if (clazz1 == null || clazz1.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found " + clazz.getClassName(), null)
             );
         } else {
-            classRepository.save(objectMapper.convertValue(clazz, Clazz.class));
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("Update successful!", clazz)
+            if (!classRepository.existsByClassName(clazz.getClassName())) {
+                classRepository.save(objectMapper.convertValue(clazz, Clazz.class));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("Update successful!", clazz)
+                );
+            }
+            return ResponseEntity.status(400).body(
+                    new ResponseObject("Class \"" + clazz.getClassName() + "\" was existed!", null)
             );
         }
     }
@@ -119,5 +127,4 @@ public class ClassServiceImpl implements ClassService {
         }
         return ResponseEntity.ok("Restore successful!");
     }
-
 }

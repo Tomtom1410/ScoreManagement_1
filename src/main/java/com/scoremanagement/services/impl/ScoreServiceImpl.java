@@ -59,7 +59,10 @@ public class ScoreServiceImpl implements ScoreService {
         List<ScoreExportExcelModel> exportList = new ArrayList<>();
         List<ScoreDTO> scoreDTOList = getScore(username);
         for (ScoreDTO scoreDTO : scoreDTOList) {
-            exportList.add(objectMapper.convertValue(scoreDTO, ScoreExportExcelModel.class));
+            ScoreExportExcelModel scoreExport = new ScoreExportExcelModel();
+            scoreExport.setScore(scoreDTO.getScore());
+            scoreExport.setCourseName(scoreDTO.getCourse().getCourseName());
+            exportList.add(scoreExport);
         }
         return exportList;
     }
@@ -84,6 +87,9 @@ public class ScoreServiceImpl implements ScoreService {
     public ResponseEntity<String> updateScoreTable(List<ScoreDTO> scoreDTOList) {
         List<Score> scoreList = new ArrayList<>();
         for (ScoreDTO scoreDTO : scoreDTOList) {
+            if (scoreDTO.getScore() < 0) {
+                return ResponseEntity.status(400).body("Score must be bigger or equal 0!");
+            }
             scoreList.add(objectMapper.convertValue(scoreDTO, Score.class));
         }
         scoreRepository.saveAll(scoreList);
