@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findByUsername(username);
-        if (account == null) {
+        if (account == null || account.getIsDelete()) {
             return null;
         }
         return new CustomUserDetail(account);

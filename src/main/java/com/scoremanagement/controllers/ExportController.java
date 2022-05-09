@@ -1,9 +1,12 @@
 package com.scoremanagement.controllers;
 
+import com.scoremanagement.dto.ClazzDTO;
 import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.export_import.BaseExportExcelModel;
 import com.scoremanagement.entities.export_import.ScoreExportExcelModel;
 import com.scoremanagement.entities.export_import.StudentExportExcelModel;
+import com.scoremanagement.response.ResponseObject;
+import com.scoremanagement.services.ClassService;
 import com.scoremanagement.services.ExportExcelFileService;
 import com.scoremanagement.services.ScoreService;
 import com.scoremanagement.services.StudentService;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,35 +29,39 @@ public class ExportController {
     private final StudentService studentService;
     private final ExportExcelFileService exportExcelFileService;
     private final ScoreService scoreService;
+    private final ClassService classService;
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("students")
-    public ResponseEntity<String> exportExcel(
+    public ResponseEntity<ResponseObject> exportExcel(
             @RequestParam("username") String username) {
         if (username == null || username.trim().length() == 0) {
-            return ResponseEntity.badRequest().body("Error! Please check again!");
+            return ResponseEntity.badRequest().body(new ResponseObject("Error! Please check again!", null));
         }
         StudentDTO studentDTO = (StudentDTO) studentService.getStudentByUsername(username).getBody().getData();
         List<BaseExportExcelModel> list = new ArrayList<>();
         list.addAll(scoreService.getScoresForExport(username));
-        exportExcelFileService.exportFile(studentDTO.getFullName(),
+        File file = exportExcelFileService.exportFile(studentDTO.getFullName(),
                 studentDTO.getFullName(), list, ScoreExportExcelModel.class);
-        return ResponseEntity.ok().body("Export success!");
+        return ResponseEntity.ok().body(new ResponseObject("Export success!", file));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("class/grade")
-    public ResponseEntity<String> exportGradeByClassAndCourse(
+    public ResponseEntity<ResponseObject> exportGradeByClassAndCourse(
             @RequestParam(name = "classId", defaultValue = "") Long id,
             @RequestParam(name = "courseCode", defaultValue = "") String courseCode
     ) {
+        ClazzDTO clazzDTO = (ClazzDTO) classService.getClassById(id).getBody().getData();
         List<StudentExportExcelModel> exportExcelModels = scoreService.getScoreExportForClass(id, courseCode);
         if (!exportExcelModels.isEmpty()) {
             List<BaseExportExcelModel> list = new ArrayList<>();
             list.addAll(exportExcelModels);
-            exportExcelFileService.exportFile("class_test", courseCode, list, StudentExportExcelModel.class);
-            return ResponseEntity.ok("Export success!");
+            File file = exportExcelFileService.exportFile("Score of " + clazzDTO.getClassName(), courseCode, list, StudentExportExcelModel.class);
+            ResponseEntity.status(200).body(new ResponseObject("Export success!", file));
         }
-        return ResponseEntity.status(404).body("Not Score of class with course " + courseCode + " !");
+        return ResponseEntity.status(404).body(
+                new ResponseObject("Not Score of class with course " + courseCode + " !", null)
+        );
     }
 }

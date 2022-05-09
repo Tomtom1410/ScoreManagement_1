@@ -167,6 +167,7 @@ public class ImportExcelFileServiceImpl implements ImportExcelFileService {
                         Cell currentCell = cellsInRow.next();
                         switch (cellIdx) {
                             case 1:
+                                currentCell.getCellType();
                                 student.setUsername(currentCell.getStringCellValue());
                                 break;
                             case 2:

@@ -15,16 +15,23 @@ import org.springframework.web.multipart.MultipartFile;
 public class ImportController {
 
     private final ImportExcelFileService importExcelFileService;
+    public final String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("grade/import")
     public ResponseEntity<String> importScoreByClassAndCourse(@RequestBody MultipartFile file) {
-        return importExcelFileService.importScoreByClassAndCourse(file);
+        if (TYPE.equals(file.getContentType())) {
+            return importExcelFileService.importScoreByClassAndCourse(file);
+        }
+        return ResponseEntity.status(400).body("You must choose file excel!");
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("student/import")
-    public ResponseEntity<String> importStudents(@RequestBody MultipartFile file){
-        return importExcelFileService.importStudents(file);
+    public ResponseEntity<String> importStudents(@RequestBody MultipartFile file) {
+        if (TYPE.equals(file.getContentType())) {
+            return importExcelFileService.importStudents(file);
+        }
+        return ResponseEntity.status(400).body("You must choose file excel!");
     }
 }
