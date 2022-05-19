@@ -23,7 +23,7 @@ public class CourseServiceImpl implements CourseService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<String> insertCourse(CourseDTO courseDTO) {
+    public ResponseEntity<String> createCourse(CourseDTO courseDTO) {
         if (!courseRepository.existsByCourseCode(courseDTO.getCourseCode())) {
             Course course = objectMapper.convertValue(courseDTO, Course.class);
             course.setIsDelete(false);
@@ -84,16 +84,18 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public ResponseEntity<ResponseObject> updateCourse(CourseDTO courseDTO) {
-        Course course = courseRepository.findById(courseDTO.getId()).orElse(null);
-        if (course == null || course.getIsDelete()) {
+
+        if (courseRepository.existsByIdAndIsDelete(courseDTO.getId(), true)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found course with id = " + courseDTO.getCourseCode(), null)
             );
         } else {
             if (!courseRepository.existsByCourseCode(courseDTO.getCourseCode())) {
-                course = courseRepository.save(objectMapper.convertValue(courseDTO, Course.class));
+                Course course = objectMapper.convertValue(courseDTO, Course.class);
+                course.setIsDelete(false);
+                courseRepository.save(course);
                 return ResponseEntity.status(HttpStatus.OK).body(
-                        new ResponseObject("Update done!", course)
+                        new ResponseObject("Update done!", courseDTO)
                 );
             }
             return  ResponseEntity.status(400).body(
@@ -101,6 +103,8 @@ public class CourseServiceImpl implements CourseService {
             );
         }
     }
+
+
 
     @Override
     public ResponseEntity<String> restoreCourse(Long[] courseIdList) {

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface CourseService {
 
-    ResponseEntity<String> insertCourse(CourseDTO courseDTO);
+    ResponseEntity<String> createCourse(CourseDTO courseDTO);
 
     ResponseEntity<ResponseObject> getAllCourses(boolean isDelete, String key, Integer page, Integer PAGE_SIZE);
 

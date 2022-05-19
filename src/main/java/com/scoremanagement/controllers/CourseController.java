@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("api/courses")
@@ -31,6 +32,7 @@ import java.util.Map;
 public class CourseController {
     private final CourseService courseService;
     private final Integer PAGE_SIZE = 2;
+    private final String PATTERN = "^[a-zA-ZaAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴ\\s\\d]+$";
 
     @GetMapping("")
     public ResponseEntity<ResponseObject> getAllCourses(
@@ -40,7 +42,12 @@ public class CourseController {
         if (page <= 0) {
             page = 1;
         }
-        return courseService.getAllCourses(false, key, page, PAGE_SIZE);
+        if (Pattern.matches(PATTERN, key)) {
+            return courseService.getAllCourses(false, key, page, PAGE_SIZE);
+        }
+        return ResponseEntity.status(400).body(
+                new ResponseObject("Search content is not valid! Please choose another content!", null)
+        );
     }
 
     @GetMapping("{id}")
@@ -51,7 +58,7 @@ public class CourseController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create")
     public ResponseEntity<String> createCourse(@Valid @RequestBody CourseDTO course) {
-        return courseService.insertCourse(course);
+        return courseService.createCourse(course);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

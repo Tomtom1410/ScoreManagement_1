@@ -4,14 +4,16 @@ import com.scoremanagement.config.JwtTokenUtil;
 import com.scoremanagement.dto.AccountCustomDTO;
 import com.scoremanagement.dto.AccountDTO;
 import com.scoremanagement.dto.StudentDTO;
+import com.scoremanagement.entities.CustomUserDetail;
 import com.scoremanagement.response.JwtResponse;
 import com.scoremanagement.response.ResponseObject;
 import com.scoremanagement.services.AuthService;
 import lombok.AllArgsConstructor;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,9 +37,7 @@ import java.util.regex.Pattern;
 public class AuthController {
     private final AuthService authService;
     private final JwtTokenUtil jwtToken;
-    private final String REGEX_FULL_NAME = "^[a-zA-ZaAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴ\\s]+$";
 
-    //    private final String REGEX_USERNAME = "";
     @PostMapping("login")
     public ResponseEntity<ResponseObject> login(@Valid @RequestBody AccountDTO account) {
         if (authService.checkLogin(account)) {
@@ -51,37 +51,19 @@ public class AuthController {
         );
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping("create-account")
-    public ResponseEntity<String> createAccount(@Valid @RequestBody StudentDTO student) {
-        if (student.getIsAdmin() == null || !student.getIsAdmin()) {
-            if (student.getFullName().trim().length() == 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Full name is not blank or empty!");
-            }
-        }
-        if (!Pattern.matches(REGEX_FULL_NAME, student.getFullName())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Full name is invalid! It must be letter!");
-        }
-
-        return authService.createAccount(student);
-    }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("delete/{username}")
-    public ResponseEntity<String> deleteAccount(@PathVariable String username) {
+    public ResponseEntity<ResponseObject> deleteAccount(@PathVariable String username) {
+        CustomUserDetail infor = (CustomUserDetail) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (infor.getUsername().equals(username)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    new ResponseObject("You mustn't delete yourself!",null)
+            );
+        }
         return authService.deleteAccount(username);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN') or #studentDTO.username == authentication.principal.username")
-    @PutMapping("update")
-    public ResponseEntity<ResponseObject> updateStudent(@Valid @RequestBody StudentDTO studentDTO) {
-        if (!Pattern.matches(REGEX_FULL_NAME, studentDTO.getFullName())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    new ResponseObject("Full name is invalid! It must be letter!", null)
-            );
-        }
-        return authService.update(studentDTO);
-    }
 
     @PreAuthorize("hasAuthority('ADMIN') or #accountCustom.account.username == authentication.principal.username")
     @PutMapping("change-password")

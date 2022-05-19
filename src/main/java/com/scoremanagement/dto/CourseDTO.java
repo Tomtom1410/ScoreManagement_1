@@ -14,5 +14,4 @@ public class CourseDTO {
     @NotBlank(message = "Course name is not blank!")
     @NotNull(message = "Course name is not null!")
     private String courseName;
-    private Boolean isDelete;
 }

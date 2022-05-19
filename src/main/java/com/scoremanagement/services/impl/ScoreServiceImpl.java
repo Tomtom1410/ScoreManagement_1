@@ -2,6 +2,7 @@ package com.scoremanagement.services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scoremanagement.dto.ScoreDTO;
+import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.Score;
 import com.scoremanagement.entities.Student;
 import com.scoremanagement.entities.export_import.ScoreExportExcelModel;
@@ -26,14 +27,8 @@ public class ScoreServiceImpl implements ScoreService {
     private final StudentRepository studentRepository;
 
     private List<ScoreDTO> getScore(String username) {
-        Student student = new Student();
-        student.setUsername(username);
-        List<Score> scoreList = scoreRepository.findAllByStudent(student);
-        List<ScoreDTO> scoreDTOList = new ArrayList<>();
-        for (Score score : scoreList) {
-            scoreDTOList.add(objectMapper.convertValue(score, ScoreDTO.class));
-        }
-        return scoreDTOList;
+        List<Score> scoreList = scoreRepository.findAllByStudent_Username(username);
+        return convertToDTO(scoreList);
     }
 
     @Override
@@ -42,12 +37,10 @@ public class ScoreServiceImpl implements ScoreService {
             List<ScoreDTO> scoreDTOList = getScore(username);
             if (scoreDTOList.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        new ResponseObject("Student " + username + " don't have score!", null)
+                        new ResponseObject("Student " + username + " haven't score!", null)
                 );
             }
-            return ResponseEntity.ok(
-                    new ResponseObject(null, scoreDTOList)
-            );
+            return ResponseEntity.ok(new ResponseObject("Found!", scoreDTOList));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ResponseObject("Don't have student with username is " + username, null)
@@ -69,7 +62,8 @@ public class ScoreServiceImpl implements ScoreService {
 
     @Override
     public List<StudentExportExcelModel> getScoreExportForClass(Long id, String courseCode) {
-        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(false, id, courseCode);
+        List<Score> scoreList = scoreRepository.
+                findAllByStudent_Account_IsDeleteAndStudent_Clazz_IdAndCourse_CourseCode(false, id, courseCode);
         List<StudentExportExcelModel> export = new ArrayList<>();
         for (Score score : scoreList) {
             StudentExportExcelModel student = new StudentExportExcelModel();
@@ -98,21 +92,26 @@ public class ScoreServiceImpl implements ScoreService {
 
     @Override
     public ResponseEntity<ResponseObject> getScoreByClassAndCourse(Long id, String courseCode) {
-        List<Score> scoreList = scoreRepository.getScoresByClassAndCourse(false, id, courseCode);
+        List<Score> scoreList = scoreRepository.
+                findAllByStudent_Account_IsDeleteAndStudent_Clazz_IdAndCourse_CourseCode(false, id, courseCode);
         if (scoreList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not Found Score Table!", null)
             );
         }
-
-        List<ScoreDTO> scoreDTOList = new ArrayList<>();
-        for (Score score : scoreList) {
-            score.getStudent().setClazz(null);
-            score.getStudent().setCourseList(null);
-            scoreDTOList.add(objectMapper.convertValue(score, ScoreDTO.class));
-        }
+        List<ScoreDTO> scoreDTOList = convertToDTO(scoreList);
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ResponseObject("Found!", scoreDTOList)
         );
+    }
+
+    private List<ScoreDTO> convertToDTO(List<Score> scoreList) {
+        List<ScoreDTO> scoreDTOList = new ArrayList<>();
+        for (Score score : scoreList) {
+            ScoreDTO scoreDTO = objectMapper.convertValue(score, ScoreDTO.class);
+            scoreDTO.setStudent(new StudentDTO(score.getStudent()));
+            scoreDTOList.add(scoreDTO);
+        }
+        return scoreDTOList;
     }
 }

@@ -4,18 +4,13 @@ import com.scoremanagement.dto.AccountDTO;
 import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.response.ResponseObject;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface AuthService extends UserDetailsService {
 
     boolean checkLogin(AccountDTO account);
 
-    ResponseEntity<String> createAccount(StudentDTO student);
-
-    ResponseEntity<ResponseObject> update(StudentDTO studentDTO);
-
     ResponseEntity<ResponseObject> changePassword(AccountDTO account, String newPassword);
 
-    ResponseEntity<String> deleteAccount(String username);
+    ResponseEntity<ResponseObject> deleteAccount(String username);
 }

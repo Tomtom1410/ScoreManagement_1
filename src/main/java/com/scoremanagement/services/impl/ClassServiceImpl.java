@@ -1,6 +1,7 @@
 package com.scoremanagement.services.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.Student;
 import com.scoremanagement.repositories.StudentRepository;
 import com.scoremanagement.response.ResponseObject;
@@ -28,41 +29,44 @@ public class ClassServiceImpl implements ClassService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<String> insertClass(ClazzDTO classesDTO) {
+    public ResponseEntity<String> createClass(ClazzDTO classesDTO) {
         if (!classRepository.existsByClassName(classesDTO.getClassName())) {
-            classesDTO.setIsDelete(false);
-            Clazz clazz = classRepository.save(objectMapper.convertValue(classesDTO, Clazz.class));
+            Clazz clazz = objectMapper.convertValue(classesDTO, Clazz.class);
+            clazz.setIsDelete(false);
+            clazz = classRepository.save(clazz);
             if (clazz.getId() > 0) {
                 return ResponseEntity.ok("Created successful!");
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Created failed!");
         }
-        return ResponseEntity.status(400).body("Class \"" + classesDTO.getClassName() + "\" was existed!");
+        return ResponseEntity.status(400).body("Class " + classesDTO.getClassName() + " was existed!");
     }
 
     @Override
     public ResponseEntity<ResponseObject> getClassById(Long classId) {
-        ClazzDTO clazzDTO = objectMapper.convertValue(classRepository.findById(classId).orElse(null), ClazzDTO.class);
-        if (clazzDTO == null || clazzDTO.getIsDelete()) {
+        Clazz clazz = classRepository.findById(classId).orElse(null);
+        if (clazz == null || clazz.getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found class with id " + classId, null)
             );
         } else {
-            Clazz clazz = new Clazz();
-            clazz.setId(classId);
+            ClazzDTO clazzDTO = objectMapper.convertValue(clazz, ClazzDTO.class);
             List<Student> studentList = studentRepository.findAllByClazzAndAccount_IsDelete(clazz, false);
+            List<StudentDTO> studentDTOList = new ArrayList<>();
             if (!studentList.isEmpty()) {
-                clazzDTO.setStudentList(studentList);
+                for (Student student : studentList) {
+                    studentDTOList.add(new StudentDTO(student));
+                }
+                clazzDTO.setStudentList(studentDTOList);
             }
             return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("Found class with id " + classId, clazzDTO)
-            );
+                    new ResponseObject("Found class with id " + classId, clazzDTO));
         }
     }
 
     @Override
     public ResponseEntity<ResponseObject> getAllClasses(boolean isDelete, String key, Integer page, Integer PAGE_SIZE) {
-        List<Clazz> classes = classRepository.findAllByClassNameLikeAndIsDelete("%" + key + "%", isDelete,
+        List<Clazz> classes = classRepository.findAllByIsDeleteAndClassNameLike(isDelete, "%" + key + "%",
                 PageRequest.of(page - 1, PAGE_SIZE
                         , Sort.by("className").ascending()
                 )).getContent();
@@ -94,21 +98,22 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> updateClass(ClazzDTO clazz) {
-        Clazz clazz1 = classRepository.findById(clazz.getId()).orElse(null);
-        if (clazz1 == null || clazz1.getIsDelete()) {
+    public ResponseEntity<ResponseObject> updateClass(ClazzDTO clazzDTO) {
+        if (classRepository.existsByIdAndIsDelete(clazzDTO.getId(), true)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("Not found " + clazz.getClassName(), null)
+                    new ResponseObject("Not found " + clazzDTO.getClassName(), null)
             );
         } else {
-            if (!classRepository.existsByClassName(clazz.getClassName())) {
-                classRepository.save(objectMapper.convertValue(clazz, Clazz.class));
+            if (!classRepository.existsByClassName(clazzDTO.getClassName())) {
+                Clazz clazz = objectMapper.convertValue(clazzDTO, Clazz.class);
+                clazz.setIsDelete(false);
+                classRepository.save(clazz);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                        new ResponseObject("Update successful!", clazz)
+                        new ResponseObject("Update successful!", clazzDTO)
                 );
             }
             return ResponseEntity.status(400).body(
-                    new ResponseObject("Class \"" + clazz.getClassName() + "\" was existed!", null)
+                    new ResponseObject("Class \"" + clazzDTO.getClassName() + "\" was existed!", null)
             );
         }
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scoremanagement.dto.ScoreDTO;
 import com.scoremanagement.dto.StudentDTO;
 import com.scoremanagement.entities.Account;
+import com.scoremanagement.entities.Helper;
 import com.scoremanagement.entities.Score;
 import com.scoremanagement.entities.Student;
 import com.scoremanagement.entities.export_import.ScoreExportExcelModel;
@@ -28,9 +29,11 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final ObjectMapper objectMapper;
     private final AccountRepository accountRepository;
+    private final Helper helper;
 
     @Override
-    public ResponseEntity<ResponseObject> getAllStudents(boolean isDelete, String key, Integer page, Integer PAGE_SIZE) {
+    public ResponseEntity<ResponseObject> getAllStudents(boolean isDelete, String key,
+                                                         Integer page, Integer PAGE_SIZE) {
         List<Student> studentList = studentRepository.getStudentsAllByFullNameLikeOrRollNumberLike(
                 isDelete, key, PageRequest.of(page - 1, PAGE_SIZE)
         ).getContent();
@@ -41,8 +44,7 @@ public class StudentServiceImpl implements StudentService {
         } else {
             List<StudentDTO> studentDTOList = new ArrayList<>();
             for (Student student : studentList) {
-                student.setAccount(null);
-                studentDTOList.add(objectMapper.convertValue(student, StudentDTO.class));
+                studentDTOList.add(new StudentDTO(student));
             }
             return ResponseEntity.status(HttpStatus.OK).body(
                     new ResponseObject("This is list students in system.", studentDTOList)
@@ -52,7 +54,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public ResponseEntity<ResponseObject> getStudentByUsername(String username) {
-        Student student = studentRepository.findStudentByUsername(username);
+        Student student = studentRepository.findById(username).orElse(null);
         if (student == null || student.getAccount().getIsDelete()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new ResponseObject("Not found student with username: " + username, null)
@@ -63,6 +65,46 @@ public class StudentServiceImpl implements StudentService {
                     new ResponseObject("The student is:", objectMapper.convertValue(student, StudentDTO.class))
             );
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> createAccount(StudentDTO studentDTO) {
+        if (accountRepository.existsById(studentDTO.getUsername())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ResponseObject("Username existed!", null));
+        } else {
+            String passwordEncoding = helper.hashPassword(studentDTO.getPassword());
+            Account account = new Account();
+            account.setIsAdmin(false);
+            account.setUsername(studentDTO.getUsername());
+            account.setPassword(passwordEncoding);
+            account.setIsDelete(false);
+            accountRepository.save(account);
+            if (!account.getIsAdmin()) {
+                Student student = objectMapper.convertValue(studentDTO, Student.class);
+                studentRepository.save(student);
+            }
+            return ResponseEntity.ok(new ResponseObject("Create account successful!", null));
+        }
+    }
+
+
+    @Override
+    public ResponseEntity<ResponseObject> updateStudent(StudentDTO studentDTO) {
+        if (accountRepository.existsByUsernameAndIsDelete(studentDTO.getUsername(), false)) {
+            Student student = studentRepository.findById(studentDTO.getUsername()).orElse(null);
+            if (student != null) {
+                student.setFullName(studentDTO.getFullName());
+                student.setGender(studentDTO.getGender());
+                studentRepository.save(student);
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new ResponseObject("Change information successful!", studentDTO));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ResponseObject("Not found student with username: " + studentDTO.getUsername(),
+                        null)
+        );
     }
 
     @Override

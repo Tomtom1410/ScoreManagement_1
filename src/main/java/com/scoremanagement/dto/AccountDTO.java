@@ -14,9 +14,8 @@ public class AccountDTO {
     @NotBlank(message = "Username is not empty!")
     @NotNull(message = "Username is mandatory!")
     private String username;
-    @NotBlank(message = "Username is not empty!")
+    @NotBlank(message = "Password is not empty!")
     @NotNull(message = "Password is mandatory!")
     private String password;
     private Boolean isAdmin;
-    private Boolean isDelete;
 }

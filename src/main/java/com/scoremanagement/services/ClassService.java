@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 
 public interface ClassService {
-    ResponseEntity<String> insertClass(ClazzDTO classesDTO);
+    ResponseEntity<String> createClass(ClazzDTO classesDTO);
 
     public ResponseEntity<ResponseObject> getClassById(Long classId);
 

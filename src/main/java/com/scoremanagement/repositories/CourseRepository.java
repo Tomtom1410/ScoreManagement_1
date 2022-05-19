@@ -15,4 +15,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Course findByCourseCode(String sheetName);
 
     boolean existsByCourseCode(String courseCode);
+
+    boolean existsByIdAndIsDelete(Long id, boolean isDelete);
 }

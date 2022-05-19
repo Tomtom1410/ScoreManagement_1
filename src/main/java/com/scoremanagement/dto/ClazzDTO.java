@@ -16,6 +16,5 @@ public class ClazzDTO {
     @NotBlank(message = "Class name is not empty!")
     @NotNull(message = "Class name is mandatory!")
     private String className;
-    private Boolean isDelete;
-    private List<Student> studentList;
+    private List<StudentDTO> studentList;
 }

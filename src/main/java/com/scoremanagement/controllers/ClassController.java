@@ -1,10 +1,9 @@
 package com.scoremanagement.controllers;
 
 import com.scoremanagement.dto.ClazzDTO;
-import com.scoremanagement.entities.export_import.BaseExportExcelModel;
 import com.scoremanagement.response.ResponseObject;
 import com.scoremanagement.services.ClassService;
-import com.scoremanagement.services.ExportExcelFileService;
+import com.scoremanagement.services.ScoreService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,17 +23,18 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("api/classes")
 @AllArgsConstructor
 public class ClassController {
     private final ClassService classService;
+    private final ScoreService scoreService;
     private final Integer PAGE_SIZE = 2;
+    private final String PATTERN = "^[a-zA-ZaAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴ\\s\\d]+$";
 
     @GetMapping("")
     public ResponseEntity<ResponseObject> getAllClasses(
@@ -44,7 +44,12 @@ public class ClassController {
         if (page <= 0) {
             page = 1;
         }
-        return classService.getAllClasses(false, key, page, PAGE_SIZE);
+        if (Pattern.matches(PATTERN, key)) {
+            return classService.getAllClasses(false, key, page, PAGE_SIZE);
+        }
+        return ResponseEntity.status(400).body(
+                new ResponseObject("Search content is not valid! Please choose another content!", null)
+        );
     }
 
     @GetMapping("{id}")
@@ -55,7 +60,7 @@ public class ClassController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("create")
     public ResponseEntity<String> createClass(@Valid @RequestBody ClazzDTO clazzDTO) {
-        return classService.insertClass(clazzDTO);
+        return classService.createClass(clazzDTO);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -71,6 +76,15 @@ public class ClassController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Class ID is invalid!");
         }
         return classService.deleteById(id);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("{id}/course/{courseCode}/scores")
+    public ResponseEntity<ResponseObject> getScoreByClassAndCourse(
+            @PathVariable Long id,
+            @PathVariable String courseCode
+    ) {
+        return scoreService.getScoreByClassAndCourse(id, courseCode);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

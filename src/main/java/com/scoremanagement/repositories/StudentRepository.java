@@ -14,8 +14,6 @@ import java.util.List;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
 
-    Student findStudentByUsername(String username);
-
     @Query(value = "SELECT roll_number FROM students ORDER BY roll_number DESC LIMIT 1;", nativeQuery = true)
     String getLastRollNumber();
 
@@ -28,4 +26,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     Student findStudentByRollNumber(String rollNumber);
 
     boolean existsByUsernameAndAccount_IsDelete(String username, Boolean isDelete);
+
+//    boolean existsByIdAndAccount_IsDelete(String username, boolean isDelete);
 }

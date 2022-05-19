@@ -17,12 +17,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.validation.Valid;
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Service
@@ -55,52 +62,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(StudentDTO studentDTO) {
-        if (accountRepository.existsByUsername(studentDTO.getUsername())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username existed!");
-        } else {
-            String passwordEncoding = helper.hashPassword(studentDTO.getPassword());
-            Account account = new Account();
-            if (studentDTO.getIsAdmin() == null) {
-                account.setIsAdmin(false);
-            }
-            account.setIsAdmin(studentDTO.getIsAdmin());
-            account.setUsername(studentDTO.getUsername());
-            account.setPassword(passwordEncoding);
-            accountRepository.save(account);
-            if (!account.getIsAdmin()) {
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//                Student student = new Student();
-//                student.setUsername(studentDTO.getUsername());
-//                student.setRollNumber(helper.generateRollNumber());
-//                student.setClazz(student.getClazz());
-//                student.setFullName(studentDTO.getFullName());
-////                String dob = sdf.format(studentDTO.getDob());
-////                student.setDob(Date.valueOf(dob));
-                Student student = objectMapper.convertValue(studentDTO, Student.class);
-                studentRepository.save(student);
-            }
-            return ResponseEntity.ok("Create account successful!");
-        }
-    }
-
-
-    @Override
-    public ResponseEntity<ResponseObject> update(StudentDTO studentDTO) {
-        if (studentRepository.existsById(studentDTO.getUsername())) {
-            Student student = objectMapper.convertValue(studentDTO, Student.class);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("Change information successful!",
-                            objectMapper.convertValue(studentRepository.save(student), StudentDTO.class))
-            );
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                new ResponseObject("Not found student with username: " + studentDTO.getUsername(),
-                        null)
-        );
-    }
-
-    @Override
     public ResponseEntity<ResponseObject> changePassword(AccountDTO accountDTO, String newPassword) {
         if (!checkLogin(accountDTO)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -110,7 +71,11 @@ public class AuthServiceImpl implements AuthService {
             Account account = new Account();
             account.setUsername(accountDTO.getUsername());
             account.setPassword(helper.hashPassword(newPassword));
-            account.setIsAdmin(accountDTO.getIsAdmin());
+            if (accountDTO.getIsAdmin() != null && accountDTO.getIsAdmin()) {
+                account.setIsAdmin(true);
+            } else {
+                account.setIsAdmin(false);
+            }
             account.setIsDelete(false);
             accountRepository.save(account);
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -120,13 +85,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<String> deleteAccount(String username) {
+    public ResponseEntity<ResponseObject> deleteAccount(String username) {
         Account account = accountRepository.findByUsername(username);
         if (account == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found account with username: " + username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResponseObject("Not found account with username: " + username, null));
         }
         account.setIsDelete(true);
         accountRepository.save(account);
-        return ResponseEntity.ok("Delete successful!");
+        return ResponseEntity.ok(new ResponseObject("Delete successful!", null));
     }
 }
