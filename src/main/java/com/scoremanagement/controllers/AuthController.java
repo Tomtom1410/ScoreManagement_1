@@ -42,7 +42,7 @@ public class AuthController {
     public ResponseEntity<ResponseObject> login(@Valid @RequestBody AccountDTO account) {
         if (authService.checkLogin(account)) {
             return ResponseEntity.status(HttpStatus.OK).body(
-                    new ResponseObject("Login successful!",
+                    new ResponseObject("Login successful! all",
                             new JwtResponse(jwtToken.generateToken(account.getUsername())))
             );
         }
